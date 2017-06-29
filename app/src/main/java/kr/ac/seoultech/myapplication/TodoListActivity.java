@@ -1,7 +1,9 @@
 package kr.ac.seoultech.myapplication;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,7 +23,7 @@ import kr.ac.seoultech.myapplication.model.Todo;
 
 import static android.R.attr.id;
 
-public class TodoListActivity extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemClickListener{
+public class TodoListActivity extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemClickListener,AdapterView.OnItemLongClickListener{
 
     private final static int REQUEST_CODE_ADD=1;
     public final static int REQUEST_CODE_DETAIL=2;
@@ -43,6 +45,7 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(this);
+        listView.setOnItemLongClickListener(this);
     }
 
     @Override
@@ -73,6 +76,12 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         if(requestCode==REQUEST_CODE_ADD){
             Todo todo=(Todo)data.getSerializableExtra("todo");
             adapter.additem(0,todo);
+        }
+        else if(requestCode==REQUEST_CODE_DETAIL){
+            Todo todo = (Todo)data.getSerializableExtra("todo");
+            int position = data.getIntExtra("position",-1);
+
+            adapter.setItem(position,todo);
         }
     }
 
@@ -108,11 +117,35 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
 
         startActivityForResult(intent,REQUEST_CODE_DETAIL);
     }
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long id) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(android.R.drawable.ic_dialog_info);
+        builder.setTitle("안내");
+        builder.setMessage("삭제하시겠습니까?");
+        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                adapter.removeItem(position);
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        builder.create().show();
+
+        return true;
+    }
     private void hideKeyboard(EditText editText){
         InputMethodManager imm =
                 (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
     }
+
 
 
 }
